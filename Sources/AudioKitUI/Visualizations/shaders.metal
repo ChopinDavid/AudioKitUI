@@ -38,7 +38,7 @@ fragment half4 genericFragment(VertexOut in [[ stage_in ]],
     float sample = waveform.sample(s, c.isFFT ? (pow(10, in.t.x) - 1.0) / 9.0 : in.t.x).x;
 
     float y = (-in.t.y + (c.isCentered ? 0.5 : 1));
-    float d = c.isFilled ? fmax(fabs(y) - fabs(sample), 0) : fabs(y - sample);
+    float d = (c.isFilled ? fmax(fabs(y) - fabs(sample), 0) : fabs(y - sample)) / 5;
     float alpha = c.isFFT ? fabs(1/(50 * d)) : smoothstep(0.01, 0.02, d);
     return half4( mix(c.foregroundColor, c.backgroundColor, alpha) );
 }

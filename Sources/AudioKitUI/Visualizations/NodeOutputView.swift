@@ -9,20 +9,22 @@ import MetalKit
 public struct NodeOutputView: ViewRepresentable {
     private var nodeTap: RawDataTap
     private let constants: FragmentConstants
+    private let floatPlotDelegate: FloatPlotDelegate?
 
-    public init(_ node: Node, color: Color = .gray, backgroundColor: Color = .clear, bufferSize: Int = 1024) {
+    public init(_ node: Node, floatPlotDelegate: FloatPlotDelegate? = nil, color: Color = .gray, backgroundColor: Color = .clear, bufferSize: Int = 1024) {
         constants = FragmentConstants(foregroundColor: color.simd,
                                       backgroundColor: backgroundColor.simd,
                                       isFFT: false,
                                       isCentered: true,
                                       isFilled: false)
         nodeTap = RawDataTap(node, bufferSize: UInt32(bufferSize), callbackQueue: .main)
+        self.floatPlotDelegate = floatPlotDelegate
     }
 
     public func makeCoordinator() -> FloatPlotCoordinator {
         nodeTap.start()
 
-        let plot = FloatPlot(frame: CGRect(x: 0, y: 0, width: 1024, height: 1024), constants: constants) {
+        let plot = FloatPlot(frame: CGRect(x: 0, y: 0, width: 1024, height: 1024), constants: constants, delegate: floatPlotDelegate) {
             nodeTap.data
         }
 

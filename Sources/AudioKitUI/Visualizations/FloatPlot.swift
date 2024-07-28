@@ -26,12 +26,15 @@ class FloatPlot: NSObject {
     var constants: FragmentConstants
     let layerRenderPassDescriptor: MTLRenderPassDescriptor
     let device = MTLCreateSystemDefaultDevice()
+    let delegate: FloatPlotDelegate?
 
     public init(frame frameRect: CGRect,
                 constants: FragmentConstants,
+                delegate: FloatPlotDelegate? = nil,
                 dataCallback: @escaping () -> [Float]) {
         self.dataCallback = dataCallback
         self.constants = constants
+        self.delegate = delegate
         bufferSampleCount = Int(frameRect.width)
 
         commandQueue = device!.makeCommandQueue()
@@ -146,6 +149,7 @@ class FloatPlot: NSObject {
             encode(to: commandBuffer, pass: layerRenderPassDescriptor)
 
             commandBuffer.present(currentDrawable)
+            delegate?.onFloatPlotDrawn()
         } else {
             print("⚠️ couldn't get drawable")
         }
@@ -167,6 +171,8 @@ extension FloatPlot: MTKViewDelegate {
                 encode(to: commandBuffer, pass: renderPassDescriptor)
                 if let drawable = view.currentDrawable {
                     commandBuffer.present(drawable)
+                    let texture = drawable.texture
+                    delegate?.onFloatPlotDrawn()
                 }
             }
 
@@ -210,3 +216,7 @@ public class FloatPlotCoordinator {
     }
 }
 #endif
+
+public protocol FloatPlotDelegate {
+    func onFloatPlotDrawn()
+}
