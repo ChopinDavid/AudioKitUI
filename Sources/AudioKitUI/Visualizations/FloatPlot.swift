@@ -95,13 +95,42 @@ class FloatPlot: NSObject {
         }
 
         var resampled = [Float](repeating: 0, count: bufferSampleCount)
+        
+        // Calculate min and max values
+        let minSampleValue = samples.min() ?? 0.0
+        let maxSampleValue = samples.max() ?? 1.0
 
+        // Define a smoothing factor to reduce the amplitude
+        let smoothingFactor: Float = 0.5 // Adjust this value to control the smoothing effect
+
+        // Now use these values in your resampling loop
         for i in 0 ..< bufferSampleCount {
             let x = Float(i) / Float(bufferSampleCount) * Float(samples.count - 1)
             let j = Int(x)
             let fraction = x - Float(j)
-            resampled[i] = samples[j] * (1.0 - fraction) + samples[j + 1] * fraction
+            let interpolatedValue = samples[j] * (1.0 - fraction) + samples[j + 1] * fraction
+
+            // Normalize the interpolated value to the range [0, 1]
+            let normalizedValue = (interpolatedValue - minSampleValue) / (maxSampleValue - minSampleValue)
+
+            // Calculate the offset using a sine function to create a semicircle effect
+            let angle = Float(i) / Float(bufferSampleCount) * Float.pi
+            let offset = (sin(angle) + 1.0) * 0.5 * (0.5 - abs(normalizedValue - 0.5)) * 2.0 // Increase the effect by multiplying by 2.0
+
+            // Calculate the x and y offsets
+            let xOffset = offset * cos(angle)
+            let yOffset = offset * sin(angle)
+
+            // Apply the offsets to the normalized value
+            let finalX = (Float(i) / Float(bufferSampleCount) - 0.5) + xOffset
+            let finalY = (normalizedValue - 0.5 + yOffset) * -smoothingFactor
+
+            // Ensure the final values stay within the range [-0.5, 0.5]
+            resampled[i] = yOffset
+            // Store the finalX value if needed for rendering
         }
+
+
 
         resampled.withUnsafeBytes { ptr in
             waveformTexture.replace(region: MTLRegionMake1D(0, bufferSampleCount),
