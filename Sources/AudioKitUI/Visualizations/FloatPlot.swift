@@ -195,6 +195,8 @@ public class FloatPlotCoordinator {
         let view = MTKView(frame: CGRect(x: 0, y: 0, width: 1024, height: 1024), device: renderer.device)
         view.clearColor = .init(red: 0.0, green: 0.0, blue: 0.0, alpha: 0)
         view.delegate = renderer
+        view.isOpaque = false
+        view.layer.isOpaque = false
         return view
     }
 }
